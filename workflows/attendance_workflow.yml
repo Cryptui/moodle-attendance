@@ -1,0 +1,43 @@
+name: Run Attendance Check
+
+on:
+  schedule:
+    - cron: '1 9 * * 1-5'   # Run at 09:01 every weekday (Monday to Friday)
+      excluding:
+        - '1 9 1 5 *'       # Exclude May 1
+        - '1 9 9 5 *'       # Exclude May 9
+        - '1 9 20 5 *'      # Exclude May 20
+        - '1 9 8-12 7 *'    # Exclude July 8 to July 12
+        - '1 9 15 8 *'      # Exclude August 15
+    - cron: '32 13 * * 1-5'  # Run at 13:32 every weekday (Monday to Friday)
+      excluding:
+        - '32 13 1 5 *'
+        - '32 13 9 5 *'
+        - '32 13 20 5 *'
+        - '32 13 8-12 7 *'
+        - '32 13 15 8 *'
+
+jobs:
+  run_attendance_check:
+    name: Run Attendance Check Job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium
+
+      - name: Run Attendance Script
+        env:
+          MOODLE_USERNAME: ${{ secrets.MOODLE_USERNAME }}
+          MOODLE_PASSWORD: ${{ secrets.MOODLE_PASSWORD }}
+        run: python attendance.py
