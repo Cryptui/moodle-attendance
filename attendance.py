@@ -25,7 +25,7 @@ def is_attendance_time():
     now = datetime.now()
     current_day = now.strftime("%A")
     current_time = now.strftime("%H:%M")
-    login_time_ranges = [("09:01", "09:02"), ("13:31", "13:32")]
+    login_time_ranges = [("09:00", "09:10"), ("13:30", "13:40")]
     if (current_day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] and
             not is_holiday(now) and
             any(start <= current_time <= end for start, end in login_time_ranges)):
