@@ -12,12 +12,21 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3.4.1  # Use the actual latest version
+        uses: actions/checkout@v3  # Use the actual latest version
 
       - name: Set up Python
-        uses: actions/setup-python@v4.0.0  # Use the actual latest version
+        uses: actions/setup-python@v4  # Use the actual latest version
         with:
           python-version: '3.x'
+
+      - name: Install geckodriver
+        run: |
+          GECKODRIVER_URL=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep 'browser_download_url.*linux64.tar.gz' | cut -d '"' -f 4)
+          wget $GECKODRIVER_URL
+          tar -xzf geckodriver*.tar.gz
+          sudo mv geckodriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/geckodriver
+
 
       - name: Install Dependencies
         run: |
@@ -29,3 +38,10 @@ jobs:
           MOODLE_USERNAME: ${{ secrets.MOODLE_USERNAME }}
           MOODLE_PASSWORD: ${{ secrets.MOODLE_PASSWORD }}
         run: python attendance.py
+
+      - name: Upload Screenshots
+        if: failure()  # This will only upload screenshots if the previous step failed
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          path: ./*.png

@@ -1,3 +1,4 @@
+import logging
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
@@ -5,11 +6,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from datetime import datetime
-# from selenium.webdriver.common.keys import Keys  # Not needed with the revised approach
+import os
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configure options for headless browser
 options = Options()
-options.headless = True
+options.headheadless = True
 
 def is_holiday(date):
     holidays = [
@@ -32,35 +36,51 @@ def is_attendance_time():
         return True
     return False
 
+# Function to check attendance
 def check_attendance(username, password):
     if is_attendance_time():
-        with webdriver.Firefox(options=options) as driver:
+        try:
+            driver = webdriver.Firefox(options=options)
             driver.get("https://moodle.becode.org/login/index.php")
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "username"))).send_keys(username)
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "password"))).send_keys(password)
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "loginbtn"))).click()
+            
+            username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
+            username_field.send_keys(username)
+            
+            password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
+            password_field.send_keys(password)
+            
+            login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
+            login_button.click()
+            
+            # Navigate to attendance page
             driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
             
-            # Attempt to find the "Check in" button using the class and text
-            check_in_button = WebDriverWait(driver, 10).until(
+            # Click the "Check in" button
+            check_in_button = WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, "//a[@class='btn btn-primary' and contains(text(), 'Check in')]"))
             )
             check_in_button.click()
 
-            location_dropdown = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "id_location")))
+            # Select the location
+            location_dropdown = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "id_location")))
             select = Select(location_dropdown)
-            current_day = datetime.now().strftime("%A")
-            if current_day in ["Monday", "Thursday"]:
-                select.select_by_value("oncampus")
-            else:
-                select.select_by_value("athome")
-            save_changes_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "id_submitbutton")))
+            select.select_by_value("oncampus" if datetime.now().strftime("%A") in ["Monday", "Thursday"] else "athome")
+            
+            # Submit attendance
+            save_changes_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "id_submitbutton")))
             save_changes_button.click()
-            # Ensure the browser session is ended
-            # driver.quit()
+            
+            logging.info("Attendance checked successfully.")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            # Save a screenshot for debugging
+            driver.save_screenshot(f"debug_screenshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
+        finally:
+            driver.quit()
+    else:
+        logging.info("It's not the time to check attendance.")
 
-
-# Retrieve username 
-moodle_username = 'MOODLE_USERNAME'
-moodle_password = 'MOODLE_PASSWORD'
+# Retrieve username and password from environment variables
+moodle_username = os.getenv('MOODLE_USERNAME')
+moodle_password = os.getenv('MOODLE_PASSWORD')
 check_attendance(moodle_username, moodle_password)
