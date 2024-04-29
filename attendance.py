@@ -33,35 +33,35 @@ def is_attendance_time(utc_now):
             any(start <= current_time <= end for start, end in login_time_ranges))
 
 def check_attendance(username, password):
-    utc_now = datetime.now(timezone.utc)  # timezone-aware UTC now
-    if is_attendance_time(utc_now):
-        try:
-            driver = webdriver.Firefox(options=options)
-            driver.get("https://moodle.becode.org/login/index.php")
-            
-            username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
-            username_field.send_keys(username)
-            
-            password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
-            password_field.send_keys(password)
-            
-            login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
-            login_button.click()
-            
-            # Navigate to attendance page
-            driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
-            
-            # Perform attendance check steps here...
-            
-            logging.info("Attendance checked successfully.")
-        except Exception as e:
-            logging.error(f"An error occurred: {e}")
-            # Save a screenshot for debugging
-            driver.save_screenshot(f"debug_screenshot_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.png")
-        finally:
+    driver = None
+    try:
+        driver = webdriver.Firefox(options=options)
+        driver.get("https://moodle.becode.org/login/index.php")
+        
+        username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
+        username_field.send_keys(username)
+        
+        password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
+        password_field.send_keys(password)
+        
+        login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
+        login_button.click()
+        
+        # Navigate to attendance page
+        driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
+        
+        # Perform attendance check steps here...
+        
+        logging.info("Attendance checked successfully.")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        if driver:
+            filename = f"debug_screenshot_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.png"
+            driver.save_screenshot(filename)
+            logging.info(f"Screenshot saved as {filename}")
+    finally:
+        if driver:
             driver.quit()
-    else:
-        logging.info("It's not the time to check attendance.")
 
 # Retrieve username and password from environment variables
 moodle_username = os.getenv('MOODLE_USERNAME')
