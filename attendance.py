@@ -24,13 +24,14 @@ def is_holiday(date):
     return date in holidays
 
 def is_attendance_time(utc_now):
-    cest_now = utc_now + timedelta(hours=2)  # Adjust to UTC+2 for CEST
-    current_day = cest_now.strftime("%A")
-    current_time = cest_now.strftime("%H:%M")
-    login_time_ranges = [("09:00", "09:10"), ("13:30", "16:40")]
-    return (current_day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] and
-            not is_holiday(cest_now) and
-            any(start <= current_time <= end for start, end in login_time_ranges))
+    #cest_now = utc_now + timedelta(hours=2)  # Adjust to UTC+2 for CEST
+    #current_day = cest_now.strftime("%A")
+    #current_time = cest_now.strftime("%H:%M")
+    #login_time_ranges = [("09:00", "09:10"), ("13:30", "13:40")]
+    #return (current_day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] and
+            #not is_holiday(cest_now) and
+            #any(start <= current_time <= end for start, end in login_time_ranges))
+    return True
 
 def check_attendance(username, password):
     driver = None
