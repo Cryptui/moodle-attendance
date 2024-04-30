@@ -12,26 +12,35 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3  # Use the actual latest version
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4  # Use the actual latest version
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
+      - name: Install Firefox dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y firefox libgtk-3-0 libdbus-glib-1-2 xvfb
+
       - name: Install geckodriver
         run: |
-          GECKODRIVER_URL=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep 'browser_download_url.*linux64.tar.gz' | cut -d '"' -f 4)
-          wget $GECKODRIVER_URL
-          tar -xzf geckodriver*.tar.gz
+          GECKODRIVER_VERSION="0.34.0"
+          wget https://github.com/mozilla/geckodriver/releases/download/v$GECKODRIVER_VERSION/geckodriver-v$GECKODRIVER_VERSION-linux64.tar.gz
+          tar -xzf geckodriver-v$GECKODRIVER_VERSION-linux64.tar.gz
           sudo mv geckodriver /usr/local/bin/
           sudo chmod +x /usr/local/bin/geckodriver
-
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install selenium
+
+      - name: Check Firefox and geckodriver versions
+        run: |
+          firefox --version
+          geckodriver --version
 
       - name: Run Attendance Script
         env:
@@ -39,8 +48,15 @@ jobs:
           MOODLE_PASSWORD: ${{ secrets.MOODLE_PASSWORD }}
         run: python attendance.py
 
+      - name: Upload geckodriver log
+        if: always()  # This will upload the log regardless of success or failure
+        uses: actions/upload-artifact@v2
+        with:
+          name: geckodriver-logs
+          path: geckodriver.log
+
       - name: Upload Screenshots
-        if: failure()  # This will only upload screenshots if the previous step failed
+        if: always()  # Ensure screenshots are uploaded regardless of job outcome
         uses: actions/upload-artifact@v2
         with:
           name: screenshots

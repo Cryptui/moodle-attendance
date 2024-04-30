@@ -24,19 +24,13 @@ def is_holiday(date):
     return date in holidays
 
 def is_attendance_time(utc_now):
-    #cest_now = utc_now + timedelta(hours=2)  # Adjust to UTC+2 for CEST
-    #current_day = cest_now.strftime("%A")
-    #current_time = cest_now.strftime("%H:%M")
-    #login_time_ranges = [("09:00", "09:10"), ("13:30", "13:40")]
-    #return (current_day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] and
-            #not is_holiday(cest_now) and
-            #any(start <= current_time <= end for start, end in login_time_ranges))
+    # This is set to always return True for testing purposes. Change logic as needed.
     return True
 
 def check_attendance(username, password):
-    driver = None
+    driver = None  # Initialize the driver to None
     try:
-        driver = webdriver.Firefox(options=options)
+        driver = webdriver.Firefox(options=options)  # Instantiate the WebDriver with options
         driver.get("https://moodle.becode.org/login/index.php")
         
         username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
@@ -48,21 +42,22 @@ def check_attendance(username, password):
         login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
         login_button.click()
         
-        # Navigate to attendance page
+        # Navigate to the attendance page
         driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
         
-        # Perform attendance check steps here...
+        # Additional steps to perform the attendance check can be added here...
         
         logging.info("Attendance checked successfully.")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+        # Save a screenshot for debugging if the driver is initialized
         if driver:
             filename = f"debug_screenshot_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.png"
             driver.save_screenshot(filename)
             logging.info(f"Screenshot saved as {filename}")
     finally:
         if driver:
-            driver.quit()
+            driver.quit()  # Ensure the driver is quit properly
 
 # Retrieve username and password from environment variables
 moodle_username = os.getenv('MOODLE_USERNAME')
