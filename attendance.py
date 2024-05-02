@@ -4,27 +4,32 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.select import Select
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import os
 
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Browser options
 options = Options()
-options.headless = True
+options.headless = True  # Run in headless mode
 
 def is_holiday(date):
     holidays = [
         datetime(date.year, 1, 1).date(),  # New Year's Day
         datetime(date.year, 5, 1).date(),  # Labor Day
+        datetime(date.year, 5, 9).date(),  # Holiday
+        datetime(date.year, 5, 10).date(),  # Bridge
         datetime(date.year, 12, 25).date(), # Christmas
     ]
     return date.date() in holidays
 
-def is_attendance_time(utc_now):
-    return True
-
 def check_attendance(username, password):
+    today = datetime.now()
+    if is_holiday(today):
+        logging.info("Today is a holiday. No attendance check needed.")
+        return
+
     driver = None
     try:
         driver = webdriver.Firefox(options=options)
@@ -39,6 +44,7 @@ def check_attendance(username, password):
         login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
         login_button.click()
         
+        # Navigate to the attendance page
         driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
         
         logging.info("Attendance checked successfully.")
@@ -52,7 +58,8 @@ def check_attendance(username, password):
         if driver:
             driver.quit()
 
-moodle_username = os.getenv('MOODLE_USERNAME')
-moodle_password = os.getenv('MOODLE_PASSWORD')
+# Retrieve username and password from environment variables
+moodle_username = os.getenv('MOODLE_USERNAME', 'default_username')
+moodle_password = os.getenv('MOODLE_PASSWORD', 'default_password')
 
 check_attendance(moodle_username, moodle_password)
