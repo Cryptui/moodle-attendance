@@ -30,33 +30,29 @@ def check_attendance(username, password):
         logging.info("Today is a holiday. No attendance check needed.")
         return
 
-    driver = None
-    try:
-        driver = webdriver.Firefox(options=options)
-        driver.get("https://moodle.becode.org/login/index.php")
-        
-        username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
-        username_field.send_keys(username)
-        
-        password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
-        password_field.send_keys(password)
-        
-        login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
-        login_button.click()
-        
-        # Navigate to the attendance page
-        driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
-        
-        logging.info("Attendance checked successfully.")
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        if driver:
+    with webdriver.Firefox(options=options) as driver:
+        driver.set_page_load_timeout(30)  # Set page load timeout to 30 seconds
+        try:
+            driver.get("https://moodle.becode.org/login/index.php")
+            
+            username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
+            username_field.send_keys(username)
+            
+            password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
+            password_field.send_keys(password)
+            
+            login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
+            login_button.click()
+            
+            # Navigate to the attendance page
+            driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
+            
+            logging.info("Attendance checked successfully.")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
             filename = f"debug_screenshot_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.png"
             driver.save_screenshot(filename)
             logging.info(f"Screenshot saved as {filename}")
-    finally:
-        if driver:
-            driver.quit()
 
 # Retrieve username and password from environment variables
 moodle_username = os.getenv('MOODLE_USERNAME', 'default_username')
