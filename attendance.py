@@ -4,6 +4,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.select import Select
 from datetime import datetime, timezone
 import os
 
@@ -46,6 +47,23 @@ def check_attendance(username, password):
             
             # Navigate to the attendance page
             driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
+
+            # Added the following lines from your previous version
+            check_in_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[@class='btn btn-primary' and contains(text(), 'Check in')]"))
+            )
+            check_in_button.click()
+
+            location_dropdown = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "id_location")))
+            select = Select(location_dropdown)
+            current_day = datetime.now().strftime("%A")
+            if current_day in ["Monday", "Thursday"]:
+                select.select_by_value("oncampus")
+            else:
+                select.select_by_value("athome")
+
+            save_changes_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "id_submitbutton")))
+            save_changes_button.click()
             
             logging.info("Attendance checked successfully.")
         except Exception as e:
