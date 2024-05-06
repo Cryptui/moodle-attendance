@@ -35,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install selenium==3.141.0  # Ensure we're using a Selenium version compatible with geckodriver 0.34.0
+          pip install selenium==4.20.0  # Match the version with local
 
       - name: Check Firefox and geckodriver versions
         run: |
