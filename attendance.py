@@ -8,7 +8,6 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
 from datetime import datetime, timezone
 import os
-import logging
 
 # Configure logging
 selenium_logger.setLevel(logging.DEBUG)
@@ -24,9 +23,16 @@ def is_holiday(date):
         datetime(date.year, 5, 1).date(),  # Labor Day
         datetime(date.year, 5, 9).date(),  # Holiday
         datetime(date.year, 5, 10).date(),  # Bridge
-        datetime(date.year, 12, 25).date(), # Christmas
+        datetime(date.year, 12, 25).date(),  # Christmas
     ]
     return date.date() in holidays
+
+def get_numeric_timeout(value, default=10):
+    """Ensure a timeout value is numeric, returning a default if not."""
+    try:
+        return float(value)  # Convert to float (or int)
+    except ValueError:
+        return default
 
 def check_attendance(username, password):
     today = datetime.now()
@@ -34,30 +40,40 @@ def check_attendance(username, password):
         logging.info("Today is a holiday. No attendance check needed.")
         return
 
+    # Define numeric timeouts explicitly
+    page_load_timeout = get_numeric_timeout(30)
+    webdriver_wait_timeout = get_numeric_timeout(20)
+    click_timeout = get_numeric_timeout(10)
+
     with webdriver.Firefox(options=options) as driver:
-        driver.set_page_load_timeout(30)  # Set page load timeout to 30 seconds
+        driver.set_page_load_timeout(page_load_timeout)  # Set page load timeout to a numeric value
         try:
             driver.get("https://moodle.becode.org/login/index.php")
             
-            username_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "username")))
+            username_field = WebDriverWait(driver, webdriver_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, "username"))
+            )
             username_field.send_keys(username)
             
-            password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "password")))
+            password_field = WebDriverWait(driver, webdriver_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, "password"))
+            )
             password_field.send_keys(password)
             
-            login_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "loginbtn")))
+            login_button = WebDriverWait(driver, webdriver_wait_timeout).until(
+                EC.element_to_be_clickable((By.ID, "loginbtn"))
+            )
             login_button.click()
             
             # Navigate to the attendance page
             driver.get("https://moodle.becode.org/mod/attendance/view.php?id=90")
 
-            # Added the following lines from your previous version
-            check_in_button = WebDriverWait(driver, 10).until(
+            check_in_button = WebDriverWait(driver, click_timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//a[@class='btn btn-primary' and contains(text(), 'Check in')]"))
             )
             check_in_button.click()
 
-            location_dropdown = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "id_location")))
+            location_dropdown = WebDriverWait(driver, click_timeout).until(EC.presence_of_element_located((By.ID, "id_location")))
             select = Select(location_dropdown)
             current_day = datetime.now().strftime("%A")
             if current_day in ["Monday", "Thursday"]:
@@ -65,7 +81,7 @@ def check_attendance(username, password):
             else:
                 select.select_by_value("athome")
 
-            save_changes_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "id_submitbutton")))
+            save_changes_button = WebDriverWait(driver, click_timeout).until(EC.element_to_be_clickable((By.ID, "id_submitbutton")))
             save_changes_button.click()
             
             logging.info("Attendance checked successfully.")
