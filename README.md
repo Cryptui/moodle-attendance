@@ -27,6 +27,27 @@ pip install -r requirements.txt
 
 Configure the `secrets` in your GitHub repository settings for `MOODLE_USERNAME` and `MOODLE_PASSWORD` to store your credentials securely.
 
+## 🔄 GitHub Actions Workflow <a name="github-actions-workflow"></a>
+
+The `attendance_workflow.yml` file in the `.github/workflows` directory configures the GitHub Actions workflow for this project. It automates the attendance marking process by running the Selenium script on a schedule.
+
+### Key Components of the Workflow:
+- **Triggers**: The workflow is triggered on a schedule defined in cron syntax, allowing the script to run automatically at specified times.
+- **Environment**: It runs on the latest Ubuntu virtual environment provided by GitHub Actions.
+- **Steps**:
+  1. **Checkout**: Clones the repository to the GitHub Actions runner.
+  2. **Set Up Python**: Installs Python.
+  3. **Setup Firefox**: Ensures Firefox is installed and configured.
+  4. **Install geckodriver**: Downloads and sets up geckodriver needed for Selenium to interact with Firefox.
+  5. **Install Dependencies**: Installs required Python libraries from `requirements.txt`.
+  6. **Run Script**: Executes the `attendance.py` script.
+  7. **Upload Logs**: If enabled, uploads logs from geckodriver for debugging.
+
+### Editing the Workflow:
+To adjust when the script runs or make changes to the workflow, edit the `.github/workflows/attendance_workflow.yml` file. You can modify the cron schedule or add additional steps to the workflow as needed.
+
+For more details on configuring GitHub Actions, see the [GitHub Actions documentation](https://docs.github.com/en/actions).
+
 ## 📁 Directory Structure <a name="directory-structure"></a>
 
 - `attendance.py`: Python script that performs the automated login and attendance check.
