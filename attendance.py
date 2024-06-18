@@ -22,6 +22,11 @@ def is_holiday(date):
         datetime(date.year, 5, 1).date(),  # Labor Day
         datetime(date.year, 5, 9).date(),  # Holiday
         datetime(date.year, 12, 25).date(),  # Christmas
+        datetime(date.year, 7, 8).date(),  # Holiday week day 1
+        datetime(date.year, 7, 9).date(),  # Holiday week day 2
+        datetime(date.year, 7, 10).date(), # Holiday week day 3
+        datetime(date.year, 7, 11).date(), # Holiday week day 4
+        datetime(date.year, 7, 12).date(), # Holiday week day 5
     ]
     return date.date() in holidays
 
